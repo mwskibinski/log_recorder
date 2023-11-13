@@ -25,7 +25,7 @@ def bytes_into_hex_dump(byte_obj):
 	return txt
 
 def print_option_string(option, description):
-	print("\t{:s}\t{:s}")
+	print("\t{:s}\t{:s}".format(option, description))
 
 def print_usage():
 	print("USAGE:")
