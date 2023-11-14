@@ -31,10 +31,20 @@ def print_usage():
 	print("USAGE:")
 	print("\thexdump [options] <filename>")
 	print("OPTIONS:")
-	print_option_string("-cNUM", "Characters per row")
-	print_option_string("-ANUM", "Maximum address")
-	print_option_string("-aNUM", "Minimum address")
-	print_option_string("-f", "Find")
+	print_option_string("[-c | --row_chars] NUM",
+		"Characters per row")
+	print_option_string("[-M | --max_addr] NUM",
+		"Maximum address")
+	print_option_string("[-m | --min_addr] NUM",
+		"Minimum address")
+	print_option_string("[-b | --byte_sep_char] x",
+		"Character used to separate bytes of data")
+	print_option_string("[-B | --byte_sep_dist] NUM",
+		"Number of data-bytes after which seprator will occur")
+	print_option_string("[-a | --addr_sep_char] x",
+		"Character used to separate bytes of address")
+	print_option_string("[-A | --addr_sep_dist] NUM",
+		"Number of address-bytes after which seprator will occur")
 
 
 """
@@ -44,7 +54,17 @@ def main():
 	if len(os.sys.argv) <= 1:
 		print_usage()
 	else:
+		min_addr = 0
+		max_addr = 0xFFFF_FFFF
+		row_chars = 80
+		byte_sep_char = ' '
+		byte_sep_dist = 1
+		addr_sep_char = ' '
+		addr_sep_dist = 4
+
 		for arg in os.sys.argv[1:]:
+			if len(arg) <= 1:
+				continue
 			if arg[0] == '-':
 				flag = arg[1]
 				match flag:
@@ -128,3 +148,5 @@ main()
 # - find sequence of bytes
 #
 # - Create separate repo for this project
+# - Flag-print even data which does not appear
+# - Character used for N/A bytes
