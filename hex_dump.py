@@ -31,20 +31,24 @@ def print_usage():
 	print("USAGE:")
 	print("\thexdump [options] <filename>")
 	print("OPTIONS:")
-	print_option_string("[-c | --row_chars] NUM",
+	print_option_string("[-c | --row_chars=] NUM",
 		"Characters per row")
-	print_option_string("[-M | --max_addr] NUM",
+	print_option_string("[-M | --max_addr=] NUM",
 		"Maximum address")
-	print_option_string("[-m | --min_addr] NUM",
+	print_option_string("[-m | --min_addr=] NUM",
 		"Minimum address")
-	print_option_string("[-b | --byte_sep_char] x",
+	print_option_string("[-b | --byte_sep_char=] x",
 		"Character used to separate bytes of data")
-	print_option_string("[-B | --byte_sep_dist] NUM",
+	print_option_string("[-B | --byte_sep_dist=] NUM",
 		"Number of data-bytes after which seprator will occur")
-	print_option_string("[-a | --addr_sep_char] x",
+	print_option_string("[-a | --addr_sep_char=] x",
 		"Character used to separate bytes of address")
-	print_option_string("[-A | --addr_sep_dist] NUM",
+	print_option_string("[-A | --addr_sep_dist=] NUM",
 		"Number of address-bytes after which seprator will occur")
+	print_option_string("[-p | --path=] PATH",
+		"Path to file which will be hex-dumped")
+	print_option_string("--",
+		"Used to separate options from path")
 
 
 """
@@ -61,19 +65,28 @@ def main():
 		byte_sep_dist = 1
 		addr_sep_char = ' '
 		addr_sep_dist = 4
+		path = ""
+	
+		# TODO: Implement key-value pairs with spaces in between.
 
 		for arg in os.sys.argv[1:]:
-			if len(arg) <= 1:
-				continue
-			if arg[0] == '-':
-				flag = arg[1]
-				match flag:
-					case 'c':
-						print('c')
-					case _:
-						print('DUPA')
+			if arg[0:2] == '--':
+				key_end_idx = arg.find("=")
+				key = arg[2:key_end_idx]
+				val = arg[key_end_idx + 1 :]
+				print("long arg; key: {:s}, val: {:s}".format(key, val))
+			elif arg[0] == '-':
+				if len(arg) == 1:
+					continue
+				key = arg[1]
+				val = arg[2 : ]
+				print("short arg; key: {:s}, val: {:s}".format(key, val))
 			else:
 				path = arg
+				print("path: {:s}".format(path))
+
+		# print_config()
+		# start_hex_dump()
 
 
 def code1():
