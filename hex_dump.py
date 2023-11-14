@@ -45,39 +45,106 @@ def print_usage():
 
 		print_option_string(left_str, opt["description"])
 
+def update_key(val):
+	return (False, None)
 
-options = (
+def get_number(val):
+	result = False
+	new_val = None
+	if val[0:2] == "0x" or val[0:2] == "0X":
+		new_val = int(val, 16)
+	elif val[0:2] == "0b" or val[0:2] == "0B":
+		new_val = int(val, 2)
+	elif val[0:2] == "0o" or val[0:2] == "0O" or val[0] == '0':
+		new_val = int(val, 8)
+	else:
+		new_val = int(val, 10)
+	return (result, new_val)
+
+def get_string(val):
+	return (True, val)
+
+def toggle_bool(key):
+	(result, current) = get_option_value(key)
+	new_val = not current
+	return (result, new_val)
+
+options = [
 	dict(short_flag='c', long_flag='row_chars',
-		occurred=False, action=None, only_flag=False, value=80,
+		occurred=False, action=get_number, only_flag=False, value=80,
 		description="Characters per row"),
 	dict(short_flag='M', long_flag='max_addr',
-		occurred=False, action=None, only_flag=False, value=0xFFFF_FFFF,
+		occurred=False, action=get_number, only_flag=False, value=0xFFFF_FFFF,
 		description="Maximum address"),
 	dict(short_flag='m', long_flag='min_addr',
-		occurred=False, action=None, only_flag=False, value=0x00,
+		occurred=False, action=get_number, only_flag=False, value=0x00,
 		description="Minimum address"),
 	dict(short_flag='b', long_flag='byte_sep_char',
-		occurred=False, action=None, only_flag=False, value=' ',
+		occurred=False, action=get_string, only_flag=False, value=' ',
 		description="Character used to seperate bytes of data"),
 	dict(short_flag='B', long_flag='byte_sep_dist',
-		occurred=False, action=None, only_flag=False, value=1,
+		occurred=False, action=get_number, only_flag=False, value=1,
 		description="Number of data-bytes after which separator will occur"),
 	dict(short_flag='a', long_flag='addr_sep_char',
-		occurred=False, action=None, only_flag=False, value=' ',
+		occurred=False, action=get_string, only_flag=False, value=' ',
 		description="Character used to seperate bytes of address"),
 	dict(short_flag='A', long_flag='addr_sep_dist',
-		occurred=False, action=None, only_flag=False, value=2,
+		occurred=False, action=get_number, only_flag=False, value=2,
 		description="Number of bytes of address after which separator will occur"),
 	dict(short_flag='p', long_flag='path',
-		occurred=False, action=None, only_flag=False, value=None,
+		occurred=False, action=get_string, only_flag=False, value=None,
 		description="Path to file which will be hex dumped"),
 	dict(short_flag='v', long_flag='verbose',
-		occurred=False, action=None, only_flag=True, value=False,
+		occurred=False, action=toggle_bool, only_flag=True, value=False,
 		description="Verbose"),
 	dict(short_flag=None, long_flag='',
-		occurred=False, action=None, only_flag=True, value=False,
+		occurred=False, action=toggle_bool, only_flag=True, value=False,
 		description="Used to indicate that no options will be provided next, only path"),
-)
+]
+
+def get_option_value(name):
+	result = None
+	found = False
+	for elem in options:
+		if elem["long_flag"] == name:
+			found = True
+			result = elem["value"]
+			break
+	return (found, result)
+
+def start_hex_dump():
+	pass
+
+def update_option(key, val, *, key_type):
+	result = False
+	update_idx = None
+	flag_key = \
+		"short_flag" if key_type == "short" else \
+		"long_flag" if key_type == "long" else \
+		None
+	for idx, elem in enumerate(options):
+		if elem[flag_key] == key:
+			update_idx = idx
+			break
+	if update_idx != None:
+		print(key, val, key_type, update_idx)
+		if options[update_idx]["occurred"] == False:
+			(result, new_val) = options[update_idx]["action"](val)
+			if result == True:
+				print(result, new_val)
+				options[update_idx]["value"] = new_val
+				options[update_idx]["occurred"] = True
+
+	return result
+
+def print_config():
+	print("=== CONFIG:")
+	for elem in options:
+		print("name: {:15s}, val: {:15s}, occ: {:5s}".format(
+			elem["long_flag"], str(elem["value"]), str(elem["occurred"])))
+	print()
+
+
 
 """
 Start.
@@ -86,38 +153,36 @@ def main():
 	if len(os.sys.argv) <= 1:
 		print_usage()
 	else:
-		min_addr = 0
-		max_addr = 0xFFFF_FFFF
-		row_chars = 80
-		byte_sep_char = ' '
-		byte_sep_dist = 1
-		addr_sep_char = ' '
-		addr_sep_dist = 4
-		path = ""
-		verbose = False
-	
 		# TODO: Implement key-value pairs with spaces in between.
-
 		for arg in os.sys.argv[1:]:
 			if arg[0:2] == '--':
 				key_end_idx = arg.find("=")
-				key = arg[2:key_end_idx]
-				val = arg[key_end_idx + 1 :]
-				if verbose == True:
+				if key_end_idx != -1:
+					key = arg[2:key_end_idx]
+					val = arg[key_end_idx + 1 :]
+				else:
+					key = arg[2:]
+					val = ""
+				if get_option_value("verbose")[1] == True:
 					print("long arg; key: {:s}, val: {:s}".format(key, val))
+				update_option(key, val, key_type="long")
 			elif arg[0] == '-':
 				if len(arg) == 1:
 					continue
 				key = arg[1]
 				val = arg[2 : ]
-				if verbose == True:
+				if get_option_value("verbose")[1] == True:
 					print("short arg; key: {:s}, val: {:s}".format(key, val))
+				update_option(key, val, key_type="short")
 			else:
-				path = arg
-				if verbose == True:
-					print("path: {:s}".format(path))
+				val = arg
+				key = "path"
+				if get_option_value("verbose")[1] == True:
+					print("path: {:s}".format(val))
+				update_option(key, val, key_type="long")
 
-		if verbose == True: print_config()
+		# if get_option_value("verbose")[1] == True: print_config()
+		print_config()
 		start_hex_dump()
 
 
