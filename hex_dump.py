@@ -25,31 +25,59 @@ def bytes_into_hex_dump(byte_obj):
 	return txt
 
 def print_option_string(option, description):
-	print("\t{:s}\t{:s}".format(option, description))
+	print("\t{:s}\n\t\t{:s}".format(option, description))
 
 def print_usage():
 	print("USAGE:")
 	print("\thexdump [options] <filename>")
 	print("OPTIONS:")
-	print_option_string("[-c | --row_chars=] NUM",
-		"Characters per row")
-	print_option_string("[-M | --max_addr=] NUM",
-		"Maximum address")
-	print_option_string("[-m | --min_addr=] NUM",
-		"Minimum address")
-	print_option_string("[-b | --byte_sep_char=] x",
-		"Character used to separate bytes of data")
-	print_option_string("[-B | --byte_sep_dist=] NUM",
-		"Number of data-bytes after which seprator will occur")
-	print_option_string("[-a | --addr_sep_char=] x",
-		"Character used to separate bytes of address")
-	print_option_string("[-A | --addr_sep_dist=] NUM",
-		"Number of address-bytes after which seprator will occur")
-	print_option_string("[-p | --path=] PATH",
-		"Path to file which will be hex-dumped")
-	print_option_string("--",
-		"Used to separate options from path")
+	for opt in options:
+		if opt["short_flag"] != None and opt["only_flag"] == False:
+			left_str = "[-{:s} | --{:s}=] ARG".format(
+				opt["short_flag"], opt["long_flag"])
+		elif opt["short_flag"] != None and opt["only_flag"] == True:
+			left_str = "[-{:s} | --{:s}]".format(
+				opt["short_flag"], opt["long_flag"])
+		elif opt["short_flag"] == None and opt["only_flag"] == False:
+			left_str = "[--{:s}=] ARG".format(opt["long_flag"])
+		elif opt["short_flag"] == None and opt["only_flag"] == True:
+			left_str = "[--{:s}]".format(opt["long_flag"])
 
+		print_option_string(left_str, opt["description"])
+
+
+options = (
+	dict(short_flag='c', long_flag='row_chars',
+		occurred=False, action=None, only_flag=False,
+		description="Characters per row"),
+	dict(short_flag='M', long_flag='max_addr',
+		occurred=False, action=None, only_flag=False,
+		description="Maximum address"),
+	dict(short_flag='m', long_flag='min_addr',
+		occurred=False, action=None, only_flag=False,
+		description="Minimum address"),
+	dict(short_flag='b', long_flag='byte_sep_char',
+		occurred=False, action=None, only_flag=False,
+		description="Character used to seperate bytes of data"),
+	dict(short_flag='B', long_flag='byte_sep_dist',
+		occurred=False, action=None, only_flag=False,
+		description="Number of data-bytes after which separator will occur"),
+	dict(short_flag='a', long_flag='addr_sep_char',
+		occurred=False, action=None, only_flag=False,
+		description="Character used to seperate bytes of address"),
+	dict(short_flag='A', long_flag='addr_sep_dist',
+		occurred=False, action=None, only_flag=False,
+		description="Number of bytes of address after which separator will occur"),
+	dict(short_flag='p', long_flag='path',
+		occurred=False, action=None, only_flag=False,
+		description="Path to file which will be hex dumped"),
+	dict(short_flag='v', long_flag='verbose',
+		occurred=False, action=None, only_flag=True,
+		description="Verbose"),
+	dict(short_flag=None, long_flag='',
+		occurred=False, action=None, only_flag=True,
+		description="Used to indicate that no options will be provided next, only path"),
+)
 
 """
 Start.
@@ -66,6 +94,7 @@ def main():
 		addr_sep_char = ' '
 		addr_sep_dist = 4
 		path = ""
+		verbose = False
 	
 		# TODO: Implement key-value pairs with spaces in between.
 
@@ -74,19 +103,22 @@ def main():
 				key_end_idx = arg.find("=")
 				key = arg[2:key_end_idx]
 				val = arg[key_end_idx + 1 :]
-				print("long arg; key: {:s}, val: {:s}".format(key, val))
+				if verbose == True:
+					print("long arg; key: {:s}, val: {:s}".format(key, val))
 			elif arg[0] == '-':
 				if len(arg) == 1:
 					continue
 				key = arg[1]
 				val = arg[2 : ]
-				print("short arg; key: {:s}, val: {:s}".format(key, val))
+				if verbose == True:
+					print("short arg; key: {:s}, val: {:s}".format(key, val))
 			else:
 				path = arg
-				print("path: {:s}".format(path))
+				if verbose == True:
+					print("path: {:s}".format(path))
 
-		# print_config()
-		# start_hex_dump()
+		if verbose == True: print_config()
+		start_hex_dump()
 
 
 def code1():
@@ -163,3 +195,4 @@ main()
 # - Create separate repo for this project
 # - Flag-print even data which does not appear
 # - Character used for N/A bytes
+# - Verbose
