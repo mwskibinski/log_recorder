@@ -3,9 +3,17 @@ import os
 """
 Hex dump a file.
 """
-def hex_dump_a_file(path_to_file, max_row_len=50):
-	file = open(path_to_file, "rb")
-	max_bytes_read = (max_row_len - 11) // 3
+def hex_dump_a_file(
+	path,
+	verbose,
+	row_len,
+	data_byte_sep, data_sep_dist,
+	addr_byte_sep, addr_sep_dist,
+	max_addr, min_addr
+	):
+	file = open(path, "rb")
+	addr_bytes_needed = get_sizeof(max_addr)
+	max_bytes_read = (row_len - 11) // 3
 	addr = 0
 	while True:
 		read_bytes = file.read(max_bytes_read)
@@ -26,6 +34,13 @@ def bytes_into_hex_dump(byte_obj):
 
 def print_option_string(option, description):
 	print("\t{:s}\n\t\t{:s}".format(option, description))
+
+def get_sizeof(data):
+	sizeof = 1
+	while data > 0xFF:
+		data = data >> 8
+		sizeof += 1
+	return sizeof
 
 def print_usage():
 	print("USAGE:")
@@ -112,7 +127,19 @@ def get_option_value(name):
 	return (found, result)
 
 def start_hex_dump():
-	pass
+	path = get_option_value("path")[1]
+	verbose = get_option_value("verbose")[1]
+	row_len = get_option_value("row_chars")[1]
+	data_byte_sep = get_option_value("byte_sep_char")[1]
+	data_sep_dist = get_option_value("byte_sep_dist")[1]
+	addr_byte_sep = get_option_value("addr_sep_char")[1]
+	addr_sep_dist = get_option_value("addr_sep_dist")[1]
+	max_addr = get_option_value("max_addr")[1]
+	min_addr = get_option_value("min_addr")[1]
+	hex_dump_a_file(path=path, verbose=verbose, row_len=row_len,
+		data_byte_sep=data_byte_sep, data_sep_dist=data_sep_dist,
+		addr_byte_sep=addr_byte_sep, addr_sep_dist=addr_sep_dist,
+		max_addr=max_addr, min_addr=min_addr)
 
 def update_option(key, val, *, key_type):
 	result = False
@@ -181,7 +208,7 @@ def main():
 				update_option(key, val, key_type="long")
 
 		# if get_option_value("verbose")[1] == True: print_config()
-		print_config()
+		# print_config()
 		start_hex_dump()
 
 
@@ -247,7 +274,20 @@ def code3():
 	print(type(abs))
 	print(Callable[[int, int], tuple[str, str]])
 
+def code4():
+	print(1, get_sizeof(0x00))
+	print(1, get_sizeof(0x0F))
+	print(1, get_sizeof(0xCF))
+	print(1, get_sizeof(0xFF))
+	print(2, get_sizeof(0x010F))
+	print(2, get_sizeof(0xFFFF))
+	print(3, get_sizeof(0xDD010F))
+	print(3, get_sizeof(0xFFFFFF))
+	print(4, get_sizeof(0xCCDD010F))
+	print(4, get_sizeof(0xFFFF_FFFF))
+
 main()
+# code4()
 
 # TODO: Flags:
 # - characters per row
