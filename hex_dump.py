@@ -49,7 +49,6 @@ def update_key(val):
 	return (False, None)
 
 def get_number(val):
-	result = False
 	new_val = None
 	if val[0:2] == "0x" or val[0:2] == "0X":
 		new_val = int(val, 16)
@@ -59,7 +58,7 @@ def get_number(val):
 		new_val = int(val, 8)
 	else:
 		new_val = int(val, 10)
-	return (result, new_val)
+	return (True, new_val)
 
 def get_string(val):
 	return (True, val)
