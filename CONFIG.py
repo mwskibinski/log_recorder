@@ -14,21 +14,19 @@ file_lifetime = 10
 # until the next command (i.e., cmd in the same row) will be transmitted.
 # Add as many (or as little -- even none) as you need.
 tx_cmds = [
-	{ "cmd": "CTB A", "interval": 1 },
-	{ "cmd": "CTB B", "interval": 3 },
-	{ "cmd": "CTB x", "interval": 4.5 },
+	{ "cmd": "xxx x", "interval": 1 },
 ]
 
 # COM port used to communicate with logger.
-com_port = "COM11"
+com_port = "COM4"
 # TODO: Consider allowing to config of params of serial transmission.
 
 # Print command when it is sent.
-print_cmd_at_tx = True
+print_cmd_at_tx = False
 
 # Print timestamp when command is sent.
-print_timestamp_at_tx = True
+print_timestamp_at_tx = False
 
 # Print timestamp periodically.
 # Set to 0 to disable.
-print_timestamp_periodically_period = 5
+print_timestamp_periodically_period = 0
