@@ -22,14 +22,6 @@ def create_new_log_file():
 	file_log = open(path_to_file_log, "wb") 
 	return file_log
 
-# Create new file to store traces.
-def create_new_trace_file():
-	timestamp = get_filename_timestamp()
-	file_name = "trace_" + timestamp
-	path_to_file = dir_name + '\\' + file_name + ".bin"
-	file = open(path_to_file, "wb") 
-	return file
-
 # Create directory where logs will be stored.
 def create_dir_with_logs():
 	timestamp = get_filename_timestamp()
@@ -121,12 +113,6 @@ timestamp_txt = None # String that holds timestamp that will be stored in the fi
 tx_cmd_txt = None # String that holds transmitted command.
 rx_buf = bytearray()
 rx_line = None
-trc_
-
-trc_mark = "*~`trc".encode()
-trc_init = trc_mark + ": INIT".encode()
-trc_end = trc_mark + ": END".encode()
-# trc_state = "idle"
 
 # Enter super loop.
 while True:
@@ -159,27 +145,7 @@ while True:
 			file_log.write(tx_cmd_txt.encode())
 			tx_cmd_txt = None
 		if rx_line != None:
-			if trc_mark in rx_line:
-				if trc_init in rx_line:
-					file_trc = create_new_trace_file()
-				elif trc_end in rx_line:
-					file_trc.close()
-				else:
-					trc_mark_idx = rx_line.find(trc_mark)
-					addr_start_idx = trc_mark_idx + 6
-					addr_end_idx = trc_mark_idx + 11
-					addr = rx_line[addr_start_idx : addr_end_idx]
-					addr = int(addr, 16)
-					data_start_idx = addr_end_idx + 2
-					data_end_idx = rx_line.find(b'\r\n')
-					data = rx_line[data_start_idx:data_end_idx]
-					data = [
-						int(data[i : i+2], 16).tobytes(1, byteorder='big')
-						for i in range(0, len(data), 2)
-					]
-					file_trc.write(rx_line)
-			else:
-				file_log.write(rx_line)
+			file_log.write(rx_line)
 			rx_line = None
 				
 		# Read data received from COM and store it.
@@ -187,8 +153,8 @@ while True:
 		rx_buf.extend(rx_data)
 		nl_idx = rx_buf.find(b'\n')
 		if nl_idx != -1:
-			rx_line = rx_buf[:nl_idx]
-			rx_buf = rx_buf[nl_idx + 1:]
+			rx_line = rx_buf[:nl_idx + 1]
+			rx_buf = rx_buf[nl_idx + 2:]
 
 	# Ctrl-C ends the whole thing.
 	except KeyboardInterrupt:
