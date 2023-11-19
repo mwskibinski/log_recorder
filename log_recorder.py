@@ -190,8 +190,8 @@ while True:
 		rx_buf.extend(rx_data)
 		nl_idx = rx_buf.find(b'\n')
 		if nl_idx != -1:
-			rx_line = rx_buf[:nl_idx]
-			rx_buf = rx_buf[nl_idx + 1:]
+			rx_line = rx_buf[:nl_idx + 1]
+			rx_buf = rx_buf[nl_idx + 2:]
 
 	# Ctrl-C ends the whole thing.
 	except KeyboardInterrupt:
