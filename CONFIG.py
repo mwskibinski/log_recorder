@@ -18,6 +18,8 @@ tx_cmds = [
 	{ "cmd": "CTB B", "interval": 3 },
 	{ "cmd": "CTB x", "interval": 4.5 },
 ]
+# TODO: Manage no tx_cmds properly.
+# TODO: Two methods of sending command: chain (current), simultaneous.
 
 # COM port used to communicate with logger.
 com_port = "COM11"
