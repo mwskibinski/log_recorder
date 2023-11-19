@@ -2,6 +2,11 @@ import random
 import time
 import serial
 
+def rand_chance(success_prop_pcnt):
+	randnum = int(random.randbytes(1)[0]) / 2.55
+	result = True if randnum < success_prop_pcnt else False
+	return result
+
 max_len = 10
 period = 500 * 1e-3
 com = serial.Serial("COM10", timeout=0)
@@ -45,6 +50,7 @@ while True:
 					tx_msg = trc_prefix + \
 						"{:05x}: ".format(trc_addr) + rand_txt + "\r\n"
 					trc_addr += lenn // 2
+					if rand_chance(50): tr_addr += 1
 					if trc_addr > 100:
 						trc_addr = -2
 				print("msg: {:s}".format(tx_msg), end='')
