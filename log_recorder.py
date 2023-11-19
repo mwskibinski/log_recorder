@@ -59,6 +59,7 @@ def prepare_next_tx_cmd(tx_cmds, curr_idx):
 	(cmd, interval) = get_current_tx_cmd(tx_cmds, curr_idx)
 	return (curr_idx, cmd, interval)
 
+# Get current command and time interval.
 def get_current_tx_cmd(tx_cmds, curr_idx):
 	cmd = tx_cmds[curr_idx]["cmd"]
 	interval = tx_cmds[curr_idx]["interval"]
@@ -71,6 +72,7 @@ def get_periodic_timestamp():
 	timestamp_line += " === ===\r\n"
 	return timestamp_line
 
+# Get next position of cursor in trace file.
 def get_curr_trace_addr(rx_line, trc_mark):
 	trc_mark_idx = rx_line.find(trc_mark)
 	addr_start_idx = trc_mark_idx + 6
@@ -80,6 +82,7 @@ def get_curr_trace_addr(rx_line, trc_mark):
 
 	return (addr, addr_end_idx)
 
+# Get data that will be stored in trace file.
 def get_curr_trace_data(rx_line, addr_end_idx):
 	data_start_idx = addr_end_idx + 2
 	data_end_idx = rx_line.find(b'\r\n')
@@ -94,6 +97,7 @@ def get_curr_trace_data(rx_line, addr_end_idx):
 
 	return data
 
+# Get current address and data to store them in trace file.
 def get_trace_addr_and_data(rx_line, trc_mark):
 	(addr, addr_end_idx) = get_curr_trace_addr(rx_line, trc_mark)
 	data = get_curr_trace_data(rx_line, addr_end_idx)
@@ -150,6 +154,7 @@ tx_cmd_txt = None # String that holds transmitted command.
 rx_buf = bytearray()
 rx_line = None
 
+# Trace consts.
 trc_mark = "*~`trc".encode()
 trc_init = trc_mark + ": INIT".encode()
 trc_end = trc_mark + ": END".encode()
@@ -177,28 +182,36 @@ while True:
 			timestamp_txt = get_tx_timestamp()
 			print_timestamp_start = now
 
-		# Store those strings if they are nonempty.
+		# Store current timestamp if timestamp line was created.
 		if timestamp_txt != None:
 			file_log.write(timestamp_txt.encode())
 			timestamp_txt = None
+		# Store transmitted command if such line was created.
 		if tx_cmd_txt != None:
 			file_log.write(tx_cmd_txt.encode())
 			tx_cmd_txt = None
+		# Store received data if line is ready.
 		if rx_line != None:
+			# If the line includes trace mark manage trace file.
 			if trc_mark in rx_line:
+				# If the line is trace-init line create trace file.
 				if trc_init in rx_line:
 					file_trc = create_new_trace_file()
+				# If the line is trace-end line close the trace file.
 				elif trc_end in rx_line:
 					file_trc.close()
+				# Otherwise store the received data as binary image.
 				else:
 					(addr, data) = get_trace_addr_and_data(rx_line, trc_mark)
-					file_trc.seek(addr) # DANGEROUS.
+					file_trc.seek(addr) # Potentially dangerous.
 					file_trc.write(data)
+			# Otherwise just store received line.
 			else:
 				file_log.write(rx_line)
 			rx_line = None
 				
-		# Read data received from COM and store it.
+		# Read data received from COM and create a line to store
+		# if newline is somewhere in the line.
 		rx_data = com.read()
 		rx_buf.extend(rx_data)
 		nl_idx = rx_buf.find(b'\n')
