@@ -50,7 +50,7 @@ while True:
 					tx_msg = trc_prefix + \
 						"{:05x}: ".format(trc_addr) + rand_txt + "\r\n"
 					trc_addr += lenn // 2
-					if rand_chance(50): tr_addr += 1
+					if rand_chance(50): trc_addr += 1
 					if trc_addr > 100:
 						trc_addr = -2
 				print("msg: {:s}".format(tx_msg), end='')
