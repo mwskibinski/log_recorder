@@ -71,6 +71,34 @@ def get_periodic_timestamp():
 	timestamp_line += " === ===\r\n"
 	return timestamp_line
 
+def get_curr_trace_addr(rx_line, trc_mark):
+	trc_mark_idx = rx_line.find(trc_mark)
+	addr_start_idx = trc_mark_idx + 6
+	addr_end_idx = trc_mark_idx + 11
+	addr = rx_line[addr_start_idx : addr_end_idx]
+	addr = int(addr, 16)
+
+	return (addr, addr_end_idx)
+
+def get_curr_trace_data(rx_line, addr_end_idx):
+	data_start_idx = addr_end_idx + 2
+	data_end_idx = rx_line.find(b'\r\n')
+	data = rx_line[data_start_idx:data_end_idx]
+	data = [
+		int(data[i : i+2], 16).to_bytes(1, byteorder='big')
+		for i in range(0, len(data), 2)
+	]
+	data_copy = data.copy()
+	data = b''
+	for d in data_copy: data += d
+
+	return data
+
+def get_trace_addr_and_data(rx_line, trc_mark):
+	(addr, addr_end_idx) = get_curr_trace_addr(rx_line, trc_mark)
+	data = get_curr_trace_data(rx_line, addr_end_idx)
+	return (addr, data)
+
 # Use to fill function reference with do-nothing functions.
 def void_function(*pargs, **kwargs):
 	pass
@@ -125,7 +153,6 @@ rx_line = None
 trc_mark = "*~`trc".encode()
 trc_init = trc_mark + ": INIT".encode()
 trc_end = trc_mark + ": END".encode()
-trc_state = "idle"
 
 # Enter super loop.
 while True:
@@ -164,21 +191,7 @@ while True:
 				elif trc_end in rx_line:
 					file_trc.close()
 				else:
-					trc_mark_idx = rx_line.find(trc_mark)
-					addr_start_idx = trc_mark_idx + 6
-					addr_end_idx = trc_mark_idx + 11
-					addr = rx_line[addr_start_idx : addr_end_idx]
-					addr = int(addr, 16)
-					data_start_idx = addr_end_idx + 2
-					data_end_idx = rx_line.find(b'\r\n')
-					data = rx_line[data_start_idx:data_end_idx]
-					data = [
-						int(data[i : i+2], 16).to_bytes(1, byteorder='big')
-						for i in range(0, len(data), 2)
-					]
-					data_copy = data.copy()
-					data = b''
-					for d in data_copy: data += d
+					(addr, data) = get_trace_addr_and_data(rx_line, trc_mark)
 					file_trc.seek(addr) # DANGEROUS.
 					file_trc.write(data)
 			else:
