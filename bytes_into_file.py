@@ -19,35 +19,38 @@ def bytes_into_hex_dump(byte_obj):
 	txt = " ".join(hex_list)
 	return txt
 
-hex_dump_a_file('bytes_dummy.bin')
+# hex_dump_a_file('bytes_dummy.bin')
+# exit()
 
-exit()
-
-file = open("bytes.bin", "wb")
-rx_line = "[asd][123123]*~`trc00000: 0123456789\r\n".encode()
 trc_mark = "*~`trc".encode()
 
-trc_mark_idx = rx_line.find(trc_mark)
-addr_start_idx = trc_mark_idx + 6
-addr_end_idx = trc_mark_idx + 11
-addr = rx_line[addr_start_idx : addr_end_idx]
-addr = int(addr, 16)
-data_start_idx = addr_end_idx + 2
-data_end_idx = rx_line.find(b'\r\n')
-data = rx_line[data_start_idx:data_end_idx]
-print(data)
-data = [
-	int(data[i : i+2], 16).to_bytes(1, byteorder='big')
-	for i in range(0, len(data), 2)
-]
-data_copy = data.copy()
-data = b''
-for d in data_copy: data += d
-print(data)
-print_bytes_as_hex_dump(data)
-exit()
+file = open("bytes.bin", "wb")
+rx_lines = (
+	"[asd][123123]*~`trc00000: 0123456789\r\n".encode(),
+	"[asd][123123]*~`trc00020: FFAAFF\r\n".encode(),
+	"[asd][123123]*~`trc00002: DEADBEEF\r\n".encode(),
+)
 
-file.write(data)
+for rx_line in rx_lines:
+	trc_mark_idx = rx_line.find(trc_mark)
+	addr_start_idx = trc_mark_idx + 6
+	addr_end_idx = trc_mark_idx + 11
+	addr = rx_line[addr_start_idx : addr_end_idx]
+	addr = int(addr, 16)
+	data_start_idx = addr_end_idx + 2
+	data_end_idx = rx_line.find(b'\r\n')
+	data = rx_line[data_start_idx:data_end_idx]
+	print(data)
+	data = tuple([
+		int(data[i : i+2], 16).to_bytes(1, byteorder='big')
+		for i in range(0, len(data), 2)
+	])
+	data_copy = data
+	data = b''
+	for d in data_copy: data += d
+	print(data)
+	print_bytes_as_hex_dump(data)
 
-file.write(data)
+	file.seek(addr)
+	file.write(data)
 file.close()

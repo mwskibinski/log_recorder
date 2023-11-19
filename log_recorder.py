@@ -121,12 +121,11 @@ timestamp_txt = None # String that holds timestamp that will be stored in the fi
 tx_cmd_txt = None # String that holds transmitted command.
 rx_buf = bytearray()
 rx_line = None
-trc_
 
 trc_mark = "*~`trc".encode()
 trc_init = trc_mark + ": INIT".encode()
 trc_end = trc_mark + ": END".encode()
-# trc_state = "idle"
+trc_state = "idle"
 
 # Enter super loop.
 while True:
@@ -174,10 +173,14 @@ while True:
 					data_end_idx = rx_line.find(b'\r\n')
 					data = rx_line[data_start_idx:data_end_idx]
 					data = [
-						int(data[i : i+2], 16).tobytes(1, byteorder='big')
+						int(data[i : i+2], 16).to_bytes(1, byteorder='big')
 						for i in range(0, len(data), 2)
 					]
-					file_trc.write(rx_line)
+					data_copy = data.copy()
+					data = b''
+					for d in data_copy: data += d
+					file_trc.seek(addr) # DANGEROUS.
+					file_trc.write(data)
 			else:
 				file_log.write(rx_line)
 			rx_line = None
